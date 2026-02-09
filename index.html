@@ -85,14 +85,14 @@
             modeText.innerText = "STATUS: REDE NEURAL EM TREINAMENTO (COLETANDO DADOS)";
             modeText.style.color = "#888";
         } else {
-            modeText.innerText = "STATUS: ALGORITMO DETERMINÍSTICO ATIVADO (TREINO CONCLUÍDO)";
+            modeText.innerText = "STATUS:TREINO CONCLUÍDO";
             modeText.style.color = "var(--neon-pink)";
         }
 
         document.getElementById('btn1').disabled = (currentPos + 1 > target || isThinking);
         document.getElementById('btn2').disabled = (currentPos + 2 > target || isThinking);
 
-        if (round > 10) {
+        if (round > 20) {
             finishTournament();
         }
     }
