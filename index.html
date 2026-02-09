@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dr. Nim: IA Training Session</title>
+    <title>Dr. Nim: IA Training Session (20 Rounds)</title>
     <style>
         :root { --neon-blue: #00f2ff; --neon-pink: #ff0055; --bg: #0d0d0d; }
         body { font-family: 'Courier New', Courier, monospace; background: var(--bg); color: white; text-align: center; padding: 20px; }
@@ -36,7 +36,7 @@
 
 <div class="container">
     <div class="header">
-        <div class="round-info">RODADA: <span id="current-round">1</span> / 10</div>
+        <div class="round-info">RODADA: <span id="current-round">1</span> / 20</div>
         <div class="score-row">
             <span>HUMANO: <b id="p-score">0</b></span>
             <span>DR. NIM: <b id="n-score">0</b></span>
@@ -57,6 +57,7 @@
 <script>
     let currentPos = 0;
     const target = 9;
+    const totalRounds = 20; // Atualizado para 20
     let round = 1;
     let playerWins = 0;
     let nimWins = 0;
@@ -85,16 +86,12 @@
             modeText.innerText = "STATUS: REDE NEURAL EM TREINAMENTO (COLETANDO DADOS)";
             modeText.style.color = "#888";
         } else {
-            modeText.innerText = "STATUS:TREINO CONCLUÍDO";
+            modeText.innerText = "STATUS: TREINO CONCLUÍDO - ALGORITMO OTIMIZADO";
             modeText.style.color = "var(--neon-pink)";
         }
 
         document.getElementById('btn1').disabled = (currentPos + 1 > target || isThinking);
         document.getElementById('btn2').disabled = (currentPos + 2 > target || isThinking);
-
-        if (round > 20) {
-            finishTournament();
-        }
     }
 
     function move(steps) {
@@ -118,19 +115,16 @@
         let step;
         
         if (round <= 6) {
-            // FASE DE TREINO: O Dr. Nim joga de forma sub-otimizada
-            // Ele escolhe aleatoriamente e pode errar o diamante de propósito
+            // FASE DE TREINO
             step = Math.floor(Math.random() * 2) + 1;
             if (currentPos + step === target && Math.random() > 0.3) {
-                step = (step === 1) ? 2 : 1; // "Erra" o pulo final às vezes
+                step = (step === 1) ? 2 : 1;
             }
         } else {
-            // FASE IMPOSSÍVEL: Matemática Pura (Complemento de 3)
-            // Se o jogador deixar qualquer brecha, o Dr. Nim trava no múltiplo de 3
+            // FASE IMPOSSÍVEL: Complemento de 3
             step = (currentPos % 3 === 0) ? 1 : (3 - (currentPos % 3));
         }
 
-        // Garante que ele não pule fora do tabuleiro
         if (currentPos + step > target) step = 1;
 
         currentPos += step;
@@ -157,23 +151,23 @@
     function endRound(playerWon) {
         if (playerWon) {
             playerWins++;
-            printLog("VOCÊ VENCEU! O Dr. Nim vai castigar seus serviçais e fazer vinte rodadas de treinamento!");
+            printLog("VOCÊ VENCEU! O Dr. Nim está recalculando os pesos sinápticos...");
         } else {
             nimWins++;
-            printLog("DR. NIM VENCEU! Algoritmo de aprendizagem processou seus movimentos.");
+            printLog("DR. NIM VENCEU! Eficiência lógica demonstrada.");
         }
 
         setTimeout(() => {
             round++;
             currentPos = 0;
             isThinking = false;
-            if (round <= 10) {
+            if (round <= totalRounds) {
                 initBoard();
                 printLog(`Iniciando Rodada ${round}...`);
             } else {
-                updateStatus();
+                finishTournament();
             }
-        }, 2500);
+        }, 2000);
     }
 
     function printLog(msg) {
@@ -182,11 +176,11 @@
 
     function finishTournament() {
         document.getElementById('controls').innerHTML = `
-            <h3 style="color:gold">TORNEIO ENCERRADO</h3>
-            <p>${playerWins > nimWins ? "O Desafiante venceu a série!" : "O Dr. Nim venceu a série!"}</p>
+            <h3 style="color:gold">TORNEIO FINALIZADO (20 RODADAS)</h3>
+            <p style="font-size: 1.2rem">${playerWins > nimWins ? "O Desafiante superou a máquina!" : "O Dr. Nim é o campeão supremo!"}</p>
             <button onclick="location.reload()" class="btn-reset">REINICIAR EXPERIMENTO</button>
         `;
-        printLog(`Placar Final: ${playerWins} a ${nimWins}. Analisem o padrão matemático agora!`);
+        printLog(`Placar Final: Humano ${playerWins} x ${nimWins} Dr. Nim.`);
     }
 
     initBoard();
