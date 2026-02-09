@@ -3,169 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Desafio Dr. Nim - IA Training</title>
+    <title>Dr. Nim: IA Training Session</title>
     <style>
-        :root { --neon-blue: #00f2ff; --neon-pink: #ff0055; --bg: #0a0a0c; }
-        body { font-family: 'Courier New', Courier, monospace; background: var(--bg); color: #fff; text-align: center; padding: 10px; }
-        .container { max-width: 600px; margin: 0 auto; border: 1px solid #333; padding: 20px; border-radius: 15px; background: rgba(0,0,0,0.8); }
+        :root { --neon-blue: #00f2ff; --neon-pink: #ff0055; --bg: #0d0d0d; }
+        body { font-family: 'Courier New', Courier, monospace; background: var(--bg); color: white; text-align: center; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; border: 2px solid #333; padding: 20px; border-radius: 15px; background: #000; box-shadow: 0 0 20px rgba(0,242,255,0.1); }
         
-        /* Placar */
-        .scoreboard { display: flex; justify-content: space-around; font-size: 1.5rem; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .score { color: var(--neon-blue); font-weight: bold; }
-
+        /* Cabeçalho e Placar */
+        .header { margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .round-info { font-size: 1.2rem; color: var(--neon-blue); margin-bottom: 10px; }
+        .score-row { display: flex; justify-content: space-around; font-size: 1.1rem; }
+        
         /* Tabuleiro */
-        .board { display: flex; justify-content: center; gap: 8px; margin: 30px 0; }
-        .cell { width: 45px; height: 45px; border: 1px solid #444; display: flex; align-items: center; justify-content: center; border-radius: 5px; font-size: 0.9rem; transition: 0.3s; }
-        .cell.active { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); transform: translateY(-5px); }
-        .cell.nim { background: var(--neon-pink); box-shadow: 0 0 15px var(--neon-pink); }
-        .diamond { border-color: var(--neon-blue); font-size: 1.5rem; }
+        .board { display: flex; justify-content: center; gap: 10px; margin: 40px 0; }
+        .cell { width: 50px; height: 50px; border: 1px solid #444; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: 0.4s; position: relative; }
+        .cell.active { background: var(--neon-blue); color: black; box-shadow: 0 0 15px var(--neon-blue); transform: scale(1.1); }
+        .cell.nim-active { background: var(--neon-pink); box-shadow: 0 0 15px var(--neon-pink); color: white; }
+        .diamond-icon { font-size: 1.5rem; }
 
-        /* Mensagens */
-        #console { height: 80px; margin: 20px 0; color: #00ff00; font-size: 0.9rem; line-height: 1.4; overflow-y: auto; text-align: left; background: #000; padding: 10px; border-radius: 5px; }
-        
-        button { padding: 15px 25px; background: transparent; color: white; border: 1px solid var(--neon-blue); cursor: pointer; border-radius: 5px; margin: 5px; font-family: inherit; }
+        /* Console de Mensagens */
+        #console { background: #111; border-left: 4px solid var(--neon-blue); padding: 15px; text-align: left; min-height: 60px; margin: 20px 0; font-size: 0.9rem; color: #0f0; }
+
+        /* Botões */
+        .controls { margin-top: 20px; }
+        button { padding: 15px 30px; background: transparent; color: white; border: 1px solid var(--neon-blue); border-radius: 5px; cursor: pointer; font-family: inherit; transition: 0.3s; }
         button:hover:not(:disabled) { background: var(--neon-blue); color: black; }
-        button:disabled { opacity: 0.2; border-color: #444; }
-        .hidden { display: none; }
+        button:disabled { opacity: 0.2; cursor: not-allowed; border-color: #444; }
+        .btn-reset { border-color: #555; font-size: 0.8rem; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="scoreboard">
-        <div>Humano: <span id="player-score" class="score">0</span></div>
-        <div>Dr. Nim: <span id="nim-score" class="score">0</span></div>
+    <div class="header">
+        <div class="round-info">RODADA: <span id="current-round">1</span> / 10</div>
+        <div class="score-row">
+            <span>HUMANO: <b id="p-score">0</b></span>
+            <span>DR. NIM: <b id="n-score">0</b></span>
+        </div>
+        <div id="intel-mode" style="font-size: 0.7rem; color: #888; margin-top: 10px;">STATUS: REDE NEURAL EM TREINAMENTO</div>
     </div>
-
-    <div id="intel-tag" style="font-size: 0.7rem; color: #888; margin-bottom: 10px;">FASE: TREINAMENTO DOS NEURÔNIOS</div>
 
     <div class="board" id="board"></div>
 
-    <div id="controls">
-        <button id="btn1" onclick="playerAction(1)">Pegar 1</button>
-        <button id="btn2" onclick="playerAction(2)">Pegar 2</button>
+    <div class="controls" id="controls">
+        <button id="btn1" onclick="move(1)">AVANÇAR 1</button>
+        <button id="btn2" onclick="move(2)">AVANÇAR 2</button>
     </div>
 
-    <div id="console">> Sistema inicializado. Aguardando input...</div>
-    
-    <button id="btn-reveal" class="hidden" onclick="revealSecret()" style="border-color: gold; color: gold;">REVELAR SEGREDO MATEMÁTICO</button>
+    <div id="console">> Sistema online. Desafiante, faça sua jogada.</div>
 </div>
 
 <script>
-    let pos = 0;
+    let currentPos = 0;
     const target = 9;
-    let pScore = parseInt(localStorage.getItem('nim_pScore')) || 0;
-    let nScore = parseInt(localStorage.getItem('nim_nScore')) || 0;
-    let totalMatches = pScore + nScore;
+    let round = 1;
+    let playerWins = 0;
+    let nimWins = 0;
     let isThinking = false;
 
-    function init() {
+    function initBoard() {
         const board = document.getElementById('board');
         board.innerHTML = '';
         for (let i = 1; i <= target; i++) {
-            const c = document.createElement('div');
-            c.className = 'cell' + (i === target ? ' diamond' : '');
-            c.id = `c-${i}`;
-            c.innerHTML = i === target ? '💎' : '●';
-            board.appendChild(c);
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.id = `cell-${i}`;
+            cell.innerHTML = i === target ? '<span class="diamond-icon">💎</span>' : i;
+            board.appendChild(cell);
         }
         updateStatus();
     }
 
     function updateStatus() {
-        document.getElementById('player-score').innerText = pScore;
-        document.getElementById('nim-score').innerText = nScore;
+        document.getElementById('current-round').innerText = round;
+        document.getElementById('p-score').innerText = playerWins;
+        document.getElementById('n-score').innerText = nimWins;
         
-        const isTrained = (totalMatches >= 3); // Após 3 partidas, vira determinístico
-        document.getElementById('intel-tag').innerText = isTrained ? "ALGORITMO: DETERMINÍSTICO (TREINADO)" : "ALGORITMO: APRENDIZAGEM DE MÁQUINA";
-        
-        document.getElementById('btn1').disabled = (pos + 1 > target || isThinking);
-        document.getElementById('btn2').disabled = (pos + 2 > target || isThinking);
+        const modeText = document.getElementById('intel-mode');
+        if (round <= 6) {
+            modeText.innerText = "STATUS: REDE NEURAL EM TREINAMENTO (COLETANDO DADOS)";
+            modeText.style.color = "#888";
+        } else {
+            modeText.innerText = "STATUS: ALGORITMO DETERMINÍSTICO ATIVADO (TREINO CONCLUÍDO)";
+            modeText.style.color = "var(--neon-pink)";
+        }
 
-        if (pScore >= 4 || nScore >= 4) {
-            announceSeriesWinner();
+        document.getElementById('btn1').disabled = (currentPos + 1 > target || isThinking);
+        document.getElementById('btn2').disabled = (currentPos + 2 > target || isThinking);
+
+        if (round > 10) {
+            finishTournament();
         }
     }
 
-    function playerAction(n) {
-        pos += n;
-        renderPos(false);
-        if (pos === target) return win(true);
-        
+    function move(steps) {
+        if (isThinking) return;
+        currentPos += steps;
+        render(false);
+
+        if (currentPos === target) {
+            endRound(true);
+            return;
+        }
+
         isThinking = true;
         updateStatus();
-        log("Operadores de neurônios agindo...");
-        setTimeout(nimAction, 1000);
+        printLog("Dr. Nim está analisando sua estratégia...");
+        
+        setTimeout(nimMove, 1000);
     }
 
-    function nimAction() {
-        let move;
-        const isTrained = (totalMatches >= 2);
-
-        if (isTrained) {
-            // Lógica Exata: Complementar para somar 3
-            move = (pos % 3 === 0) ? 1 : (3 - (pos % 3));
+    function nimMove() {
+        let step;
+        
+        if (round <= 6) {
+            // FASE DE TREINO: O Dr. Nim joga de forma sub-otimizada
+            // Ele escolhe aleatoriamente e pode errar o diamante de propósito
+            step = Math.floor(Math.random() * 2) + 1;
+            if (currentPos + step === target && Math.random() > 0.3) {
+                step = (step === 1) ? 2 : 1; // "Erra" o pulo final às vezes
+            }
         } else {
-            // Fase de Treino: Pode errar
-            move = Math.floor(Math.random() * 2) + 1;
-            if (pos + move === target && totalMatches < 1) move = (move === 1 ? 2 : 1);
+            // FASE IMPOSSÍVEL: Matemática Pura (Complemento de 3)
+            // Se o jogador deixar qualquer brecha, o Dr. Nim trava no múltiplo de 3
+            step = (currentPos % 3 === 0) ? 1 : (3 - (currentPos % 3));
         }
 
-        if (pos + move > target) move = 1;
-        pos += move;
-        renderPos(true);
-        
-        if (pos === target) return win(false);
-        
-        isThinking = false;
-        log("Dr. Nim moveu. Sua vez, desafiante!");
-        updateStatus();
-    }
+        // Garante que ele não pule fora do tabuleiro
+        if (currentPos + step > target) step = 1;
 
-    function renderPos(isNim) {
-        document.querySelectorAll('.cell').forEach(c => c.classList.remove('active', 'nim'));
-        const active = document.getElementById(`c-${pos}`);
-        active.classList.add('active');
-        if (isNim) active.classList.add('nim');
-    }
+        currentPos += step;
+        render(true);
 
-    function win(isPlayer) {
-        if (isPlayer) {
-            pScore++;
-            log("VOCÊ GANHOU! 'O Dr. Nim vai castigar seus serviçais e fazer 20 rodadas de treino!'");
+        if (currentPos === target) {
+            endRound(false);
         } else {
-            nScore++;
-            log("DR. NIM GANHOU! Conhecimento adquirido aplicado com sucesso.");
-        }
-        totalMatches++;
-        localStorage.setItem('nim_pScore', pScore);
-        localStorage.setItem('nim_nScore', nScore);
-        
-        setTimeout(() => {
-            pos = 0;
-            init();
             isThinking = false;
+            printLog(`Dr. Nim avançou para a casa ${currentPos}. Sua vez.`);
+            updateStatus();
+        }
+    }
+
+    function render(isNim) {
+        document.querySelectorAll('.cell').forEach(c => c.classList.remove('active', 'nim-active'));
+        const activeCell = document.getElementById(`cell-${currentPos}`);
+        if (activeCell) {
+            activeCell.classList.add('active');
+            if (isNim) activeCell.classList.add('nim-active');
+        }
+    }
+
+    function endRound(playerWon) {
+        if (playerWon) {
+            playerWins++;
+            printLog("VOCÊ VENCEU! O Dr. Nim vai castigar seus serviçais e fazer vinte rodadas de treinamento!");
+        } else {
+            nimWins++;
+            printLog("DR. NIM VENCEU! Algoritmo de aprendizagem processou seus movimentos.");
+        }
+
+        setTimeout(() => {
+            round++;
+            currentPos = 0;
+            isThinking = false;
+            if (round <= 10) {
+                initBoard();
+                printLog(`Iniciando Rodada ${round}...`);
+            } else {
+                updateStatus();
+            }
         }, 2500);
     }
 
-    function announceSeriesWinner() {
-        document.getElementById('controls').classList.add('hidden');
-        document.getElementById('btn-reveal').classList.remove('hidden');
-        const winner = pScore >= 4 ? "HUMANO" : "DR. NIM";
-        log(`MELHOR DE SETE ENCERRADA! Vencedor: ${winner}. Placar: ${pScore} a ${nScore}.`);
+    function printLog(msg) {
+        document.getElementById('console').innerHTML = "> " + msg;
     }
 
-    function revealSecret() {
-        alert("O SEGREDO DO DR. NIM:\n\nAgrupe as peças em 3 segmentos de 3.\nSe o desafiante pega 1, o Dr. Nim pega 2.\nSe o desafiante pega 2, o Dr. Nim pega 1.\nA máquina busca sempre totalizar 3 por rodada, deixando você sempre a 3 peças do diamante!");
-        log("Padrão revelado: Heurística ensina que a soma 3 é invencível.");
+    function finishTournament() {
+        document.getElementById('controls').innerHTML = `
+            <h3 style="color:gold">TORNEIO ENCERRADO</h3>
+            <p>${playerWins > nimWins ? "O Desafiante venceu a série!" : "O Dr. Nim venceu a série!"}</p>
+            <button onclick="location.reload()" class="btn-reset">REINICIAR EXPERIMENTO</button>
+        `;
+        printLog(`Placar Final: ${playerWins} a ${nimWins}. Analisem o padrão matemático agora!`);
     }
 
-    function log(m) {
-        const c = document.getElementById('console');
-        c.innerHTML = "> " + m + "<br>" + c.innerHTML;
-    }
-
-    init();
+    initBoard();
 </script>
 </body>
 </html>
